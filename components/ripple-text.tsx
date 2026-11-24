@@ -50,7 +50,7 @@ export function RippleText({ text, focusable = false, effect = "ink" }: {
   });
 
   return (
-    <span className={`ripple-text ripple-${effect}`} ref={ref} tabIndex={focusable ? 0 : undefined}
+    <span className={`ripple-text ripple-${effect}`} ref={ref} tabIndex={focusable ? 0 : undefined} data-sound-ripple
       onPointerEnter={e => { if (e.pointerType === "mouse") play(e.clientX); }}
       onPointerDown={e => { if (e.pointerType !== "mouse") play(e.clientX); }}
       onFocus={e => { if (e.currentTarget.matches(":focus-visible")) play(); }}>

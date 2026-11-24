@@ -1,4 +1,6 @@
-import { getCopy } from "@/lib/locale";
+import { getLocale } from "@/lib/locale";
+import { localizedPath } from "@/lib/routes";
+import { translations } from "@/lib/translations";
 import type { ReactNode } from "react";
 import { RouteLink } from "./page-motion";
 import { PetCat } from "./pet-cat";
@@ -11,7 +13,8 @@ type InnerScreenProps = {
 };
 
 export async function InnerScreen({ title, footer, children }: InnerScreenProps) {
-  const copy = await getCopy();
+  const locale = await getLocale();
+  const copy = translations[locale];
   return (
     <main className="inner-screen" tabIndex={-1}>
       <h1 className="pixel-title" data-enter>{title}</h1>
@@ -21,7 +24,7 @@ export async function InnerScreen({ title, footer, children }: InnerScreenProps)
           <PetCat label={copy.pet} className="footer-cat" />
           <span>{footer}</span>
         </div>
-        <RouteLink href="/" className="home-button" aria-label={copy.back} data-motion="icon">
+        <RouteLink href={localizedPath(locale, "/")} className="home-button" aria-label={copy.back} data-motion="icon">
           <Sprite name="home" />
         </RouteLink>
       </footer>

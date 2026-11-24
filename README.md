@@ -11,7 +11,7 @@ My little corner of the web for software, graphics, hardware, and the occasional
 | Screen | What you’ll find |
 | --- | --- |
 | **Who tf are you?** | The things I make, from web apps to PCB design. Run the cursor over Software, Graphics, and Hardware to try each text effect. |
-| **Stfu and gimme your projects.** | The three public repos I’ve pushed to most recently. The site refreshes GitHub data every 15 minutes and shows a handpicked selection when GitHub is unavailable. |
+| **Stfu and gimme your projects.** | The four public repos I’ve pushed to most recently. The site refreshes GitHub data every 15 minutes and shows a handpicked selection when GitHub is unavailable. |
 | **Let’s talk honey!** | The places to reach me, see what I’m up to, or buy me a coffee. |
 
 Move with <kbd>↑</kbd> and <kbd>↓</kbd>, hover and click, or tap on mobile. Pixel wipes connect the screens. Click the cat for hearts.
@@ -27,18 +27,22 @@ npm run dev
 
 Open [localhost:3000](http://localhost:3000). For a production build, run `npm run build` followed by `npm start`. Use `npm run typecheck` to check TypeScript.
 
-Both settings below are optional. To use either, copy `.env.example` to `.env.local`.
+To use any of these optional settings, copy `.env.example` to `.env.local`.
 
 | Variable | What it does |
 | --- | --- |
 | `CONTACT_EMAIL` | Adds a public email link to the contact screen. |
 | `GITHUB_TOKEN` | Authenticates the server’s GitHub requests for a higher API rate limit. |
+| `SITE_URL` | Overrides the canonical public origin for metadata and the sitemap. Defaults to `https://fancyweb.top`. |
+| `GOOGLE_SITE_VERIFICATION` | Adds the HTML verification token from Google Search Console. |
 
 ## English · Čeština · Deutsch
 
 The language switcher works on every screen. Pick a language and the text decodes from ASCII into the new copy. Visitors who prefer reduced motion see the translation immediately.
 
-A manual choice lasts a year. On a first visit, the site uses the country header from Cloudflare or Vercel when available. Czechia gets Czech. Germany, Austria, and Liechtenstein get German. For other locations, or when the host sends no country, it uses the visitor’s preferred supported browser language, with English as the fallback.
+Every page has an English, Czech, and German URL under `/en`, `/cs`, and `/de`. Opening a URL without a language prefix uses the saved choice, then the country header from Cloudflare or Vercel, then the browser’s language, with English as the fallback. The switcher saves its choice for a year.
+
+The deployed `/sitemap.xml` lists the canonical pages and their translations. It’s linked from `/robots.txt` and can be submitted to Google Search Console.
 
 ## Under the hood
 

@@ -3,20 +3,23 @@
 import { DecodeText } from "@/components/decode-text";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useRef } from "react";
+import { useRef, type PointerEvent } from "react";
 import { RouteLink } from "./page-motion";
+import { useUiSound } from "./soundscape";
 import { Sprite } from "./sprite";
 
-import type { translations } from "@/lib/translations";
+import { localizedPath } from "@/lib/routes";
+import type { Locale, translations } from "@/lib/translations";
 
 const pages = ["about", "projects", "contact"] as const;
 let lastOpened = 0;
 
-export function HomeMenu({ copy }: { copy: typeof translations.en.home }) {
+export function HomeMenu({ copy, locale }: { copy: typeof translations.en.home; locale: Locale }) {
   const menu = useRef<HTMLElement>(null);
   const cursor = useRef<HTMLDivElement>(null);
   const selected = useRef(0);
   const hop = useRef<gsap.core.Timeline | null>(null);
+  const playSound = useUiSound();
 
   const { contextSafe } = useGSAP(() => {
     const nav = menu.current!;
@@ -58,8 +61,8 @@ export function HomeMenu({ copy }: { copy: typeof translations.en.home }) {
       event.preventDefault();
       const step = event.key === "ArrowDown" ? 1 : -1;
       const next = (index + step + rows.length) % rows.length;
-      select(next);
       rows[next].querySelector("a")?.focus();
+      select(next);
     }
     window.addEventListener("keydown", keydown);
     return () => {
@@ -76,6 +79,7 @@ export function HomeMenu({ copy }: { copy: typeof translations.en.home }) {
     selected.current = index;
     const row = rows[index];
     row.setAttribute("data-selected", "");
+    playSound("select");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const cat = menu.current!.closest("main")?.querySelector(".hero-cat");
     if (!reduced && cat) {
@@ -90,6 +94,14 @@ export function HomeMenu({ copy }: { copy: typeof translations.en.home }) {
     });
   });
 
+  function hoverChoice(event: PointerEvent<HTMLAnchorElement>, index: number) {
+    if (event.pointerType === "touch") return;
+    if (document.activeElement !== event.currentTarget && menu.current?.contains(document.activeElement)) {
+      event.currentTarget.focus({ preventScroll: true });
+    }
+    select(index);
+  }
+
   return (
     <nav ref={menu} aria-label={copy.menu} className="home-menu">
       <div ref={cursor} className="menu-cursor" aria-hidden="true"><Sprite name="cursor" /></div>
@@ -98,14 +110,16 @@ export function HomeMenu({ copy }: { copy: typeof translations.en.home }) {
           <li key={page} data-enter data-selected={index === 0 ? "" : undefined}>
             <RouteLink
               aria-label={copy[page].join("")}
-              className="menu-choice" href={`/${page}`}
-              onFocus={() => select(index)}
-              onPointerMove={(event) => {
-                if (document.activeElement !== event.currentTarget && menu.current?.contains(document.activeElement)) {
-                  event.currentTarget.focus({ preventScroll: true });
-                }
+              className="menu-choice" href={localizedPath(locale, `/${page}`)}
+              onFocus={event => {
+                if (index === selected.current && event.currentTarget.matches(":focus-visible")) playSound("select");
                 select(index);
               }}
+              onPointerEnter={event => {
+                if (event.pointerType !== "touch" && index === selected.current) playSound("hover");
+                hoverChoice(event, index);
+              }}
+              onPointerMove={event => hoverChoice(event, index)}
               onPointerDown={() => select(index)}
               onClick={() => { lastOpened = index; }}
             >

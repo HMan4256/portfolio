@@ -52,8 +52,8 @@ export function DecodeText({ text, renderWord }: {
 
   return (
     <span ref={root}>
-      <span className="sr-only">{text}</span>
-      <span aria-hidden="true">{text.split(/(\s+)/u).map((word, i) =>
+      {renderWord && <span className="sr-only">{text}</span>}
+      <span aria-hidden={renderWord ? true : undefined}>{text.split(/(\s+)/u).map((word, i) =>
         !word.trim() ? word : (
           <span className="decode-word" key={i}><span>{renderWord ? renderWord(word) : word}</span></span>
         )

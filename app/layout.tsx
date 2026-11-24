@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
-import { PageMotion } from "@/components/page-motion";
-import { getCopy, getLocale } from "@/lib/locale";
-import { LanguageSwitcher } from "@/components/language-switcher";
+import { SiteShell } from "@/components/site-shell";
+import { getRoute } from "@/lib/locale";
+import { siteName, siteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const pixelify = localFont({
@@ -13,23 +13,22 @@ const pixelify = localFont({
   display: "swap",
 });
 
-export async function generateMetadata(): Promise<Metadata> {
-  const copy = await getCopy();
-  return {
-    title: { default: "HMan", template: "%s | HMan" },
-    description: copy.description,
-    icons: { icon: "/pixel/cat.png" },
-  };
-}
+export const metadata: Metadata = {
+  metadataBase: siteUrl,
+  title: siteName,
+  applicationName: siteName,
+  authors: [{ name: siteName }],
+  creator: siteName,
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
+};
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const locale = await getLocale();
-  const copy = await getCopy();
+  const route = await getRoute();
   return (
-    <html lang={locale} className={pixelify.variable}>
+    <html lang={route.locale} className={pixelify.variable}>
       <body>
-        <LanguageSwitcher locale={locale} label={copy.language} />
-        <PageMotion>{children}</PageMotion>
+        <SiteShell initialRoute={route}>{children}</SiteShell>
       </body>
     </html>
   );

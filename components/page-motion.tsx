@@ -14,6 +14,8 @@ import {
   type PointerEvent,
   type ReactNode,
 } from "react";
+import { screenPath } from "@/lib/routes";
+import { useUiSound } from "./soundscape";
 
 gsap.registerPlugin(useGSAP);
 
@@ -32,14 +34,17 @@ function stripDelay(index: number) {
 
 export function PageMotion({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
+  const startup = useRef<HTMLCanvasElement>(null);
   const curtain = useRef<HTMLDivElement>(null);
   const historyFrame = useRef<HTMLDivElement>(null);
   const wipe = useRef<gsap.core.Timeline | null>(null);
-  const previousPath = useRef<string | null>(null);
   const phase = useRef<"idle" | "covering" | "covered" | "revealing">("idle");
   const ready = useRef(false);
   const router = useRouter();
   const pathname = usePathname();
+  const screen = screenPath(pathname);
+  const previousPath = useRef(screen);
+  const playSound = useUiSound();
 
   function activeScreen() {
     return Array.from(root.current!.querySelectorAll("main")).find(page => page.getClientRects().length);
@@ -61,9 +66,65 @@ export function PageMotion({ children }: { children: ReactNode }) {
     }, 0);
   }
 
+  function startIntro() {
+    const overlay = startup.current!;
+    const style = getComputedStyle(overlay);
+    if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) < 1) {
+      enter();
+      return;
+    }
+
+    const ctx = overlay.getContext("2d");
+    if (!ctx) {
+      gsap.set(overlay, { visibility: "hidden" });
+      return;
+    }
+
+    // Draw in whole pixels on a small canvas and let CSS scale it to the screen.
+    const centerX = Math.ceil(overlay.clientWidth / 32);
+    const centerY = Math.ceil(overlay.clientHeight / 32);
+    const width = centerX * 2 + 1;
+    const height = centerY * 2 + 1;
+    overlay.width = width;
+    overlay.height = height;
+    const coverColor = style.backgroundColor;
+    const aperture = { radius: -1 };
+
+    function draw(context: CanvasRenderingContext2D) {
+      const { radius } = aperture;
+      context.fillStyle = coverColor;
+      context.fillRect(0, 0, width, height);
+      if (radius < 0) return;
+
+      const rim = radius + 1;
+      context.fillStyle = "#3c4752";
+      for (let row = 0; row < height; row++) {
+        const offset = row - centerY;
+        if (Math.abs(offset) > rim) continue;
+        const edge = Math.floor(Math.sqrt(rim ** 2 - offset ** 2));
+        context.fillRect(centerX - edge, row, edge * 2 + 1, 1);
+        if (Math.abs(offset) > radius) continue;
+        const opening = Math.floor(Math.sqrt(radius ** 2 - offset ** 2));
+        context.clearRect(centerX - opening, row, opening * 2 + 1, 1);
+      }
+    }
+
+    draw(ctx);
+    gsap.timeline()
+      .set(overlay, { backgroundColor: "transparent", animationDelay: "4s" })
+      .to(aperture, {
+        radius: Math.hypot(centerX, centerY) + 1,
+        duration: 0.88,
+        ease: "power2.inOut",
+        onUpdate: () => draw(ctx),
+      }, 0.06)
+      .set(overlay, { visibility: "hidden" });
+  }
+
   function reveal() {
     if (phase.current !== "covered" || !ready.current) return;
     phase.current = "revealing";
+    playSound("reveal");
     historyFrame.current?.replaceChildren();
     const overlay = curtain.current!;
     const reduced = matchMedia(reduceMotion).matches;
@@ -82,8 +143,10 @@ export function PageMotion({ children }: { children: ReactNode }) {
 
   function cover(back: boolean, onCovered?: () => void) {
     const overlay = curtain.current!;
+    if (startup.current) startup.current.hidden = true;
     wipe.current?.kill();
     phase.current = "covering";
+    playSound("cover");
     ready.current = false;
     overlay.dataset.visible = "true";
     overlay.dataset.back = String(back);
@@ -102,21 +165,23 @@ export function PageMotion({ children }: { children: ReactNode }) {
     });
   }
 
+  useGSAP(startIntro, { scope: startup });
+
   const { contextSafe } = useGSAP(() => {
-    if (previousPath.current === null || previousPath.current === pathname) enter();
-    else {
-      ready.current = true;
-      if (phase.current === "idle") enter();
-      else reveal();
-    }
-    previousPath.current = pathname;
-  }, { scope: root, dependencies: [pathname] });
+    if (previousPath.current === screen) return;
+    ready.current = true;
+    if (phase.current === "idle") {
+      playSound("reveal");
+      enter();
+    } else reveal();
+    previousPath.current = screen;
+  }, { scope: root, dependencies: [screen] });
 
   useEffect(() => {
     // History traversal commits independently of Link. Keep the outgoing pixels
     // visible at their current scroll position until the curtain covers them.
     const onPop = contextSafe(() => {
-      if (window.location.pathname === previousPath.current) {
+      if (screenPath(window.location.pathname) === previousPath.current) {
         if (historyFrame.current?.hasChildNodes()) {
           ready.current = true;
           reveal();
@@ -124,9 +189,11 @@ export function PageMotion({ children }: { children: ReactNode }) {
         return;
       }
       const copy = root.current!.cloneNode(true) as HTMLDivElement;
-      copy.style.transform = `translateY(-${window.scrollY}px)`;
-      historyFrame.current!.replaceChildren(copy);
-      cover(window.location.pathname === "/");
+      const scrollPosition = window.scrollY;
+      const frame = historyFrame.current!;
+      frame.replaceChildren(copy);
+      frame.scrollTop = scrollPosition;
+      cover(screenPath(window.location.pathname) === "/");
     });
     window.addEventListener("popstate", onPop, true);
     return () => window.removeEventListener("popstate", onPop, true);
@@ -156,7 +223,7 @@ export function PageMotion({ children }: { children: ReactNode }) {
     if (choice && !matchMedia(reduceMotion).matches) {
       gsap.fromTo(choice, { scale: 0.96 }, { scale: 1, duration: 0.22, clearProps: "scale", ease: "power2.out" });
     }
-    cover(href === "/", () => router.push(href));
+    cover(screenPath(href) === "/", () => router.push(href));
   });
 
   return (
@@ -164,6 +231,7 @@ export function PageMotion({ children }: { children: ReactNode }) {
       <div ref={root} onPointerOver={move} onPointerOut={move} onFocus={move} onBlur={move}>
         {children}
       </div>
+      <canvas ref={startup} className="startup-screen" inert aria-hidden="true" />
       <div ref={historyFrame} className="history-frame" inert aria-hidden="true" />
       <div ref={curtain} className="pixel-curtain" aria-hidden="true">
         {bands.map((index) => <span key={index} />)}

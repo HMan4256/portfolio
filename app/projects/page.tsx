@@ -1,3 +1,5 @@
+import { PageSchema } from "@/components/page-schema";
+import { pageMetadata } from "@/lib/seo";
 import { DecodeText } from "@/components/decode-text";
 import { getCopy, getLocale } from "@/lib/locale";
 import type { Metadata } from "next";
@@ -7,9 +9,8 @@ import { githubProfile, githubUser } from "@/lib/profile";
 import { getRepositories } from "@/lib/repositories";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getCopy()).projects.title };
+  return pageMetadata(await getLocale(), "/projects");
 }
-
 export default async function ProjectsPage() {
   const locale = await getLocale();
   const { projects } = await getCopy();
@@ -26,7 +27,9 @@ export default async function ProjectsPage() {
       title={<DecodeText text={projects.heading} />}
       footer={<a href={`${githubProfile}?tab=repositories`} target="_blank" rel="noreferrer"><DecodeText text={projects.footer} /></a>}
     >
+      <PageSchema locale={locale} page="/projects" projects={repositories} />
       <div className="projects-content">
+        <p className="projects-intro" data-enter><DecodeText text={projects.intro} /></p>
         {repositories.length > 0 ? (
           <>
             <a className="repo-owner" href={githubProfile} target="_blank" rel="noreferrer" data-enter>

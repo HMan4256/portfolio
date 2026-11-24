@@ -1,13 +1,14 @@
-import { getCopy } from "@/lib/locale";
+import { PageSchema } from "@/components/page-schema";
+import { pageMetadata } from "@/lib/seo";
+import { getCopy, getLocale } from "@/lib/locale";
 import type { Metadata } from "next";
 import { PixelIcon } from "@/components/pixel-icon";
 import { RippleText } from "@/components/ripple-text";
 import { InnerScreen } from "@/components/inner-screen";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return { title: (await getCopy()).about.title };
+  return pageMetadata(await getLocale(), "/about");
 }
-
 const categories = [
   { key: "software", effect: "decode", icon: "code" },
   { key: "graphics", effect: "ink", icon: "paint" },
@@ -15,9 +16,11 @@ const categories = [
 ] as const;
 
 export default async function AboutPage() {
+  const locale = await getLocale();
   const { about } = await getCopy();
   return (
     <InnerScreen title={<><RippleText text={about.prefix} /> <span className="accent"><RippleText text={about.creator} focusable /></span></>} footer={<RippleText text={about.footer} />}>
+      <PageSchema locale={locale} page="/about" />
       <div className="about-content">
         <p className="about-intro" data-enter><RippleText text={about.intro} /></p>
         <div className="about-grid">

@@ -1,25 +1,32 @@
-import { cookies } from "next/headers";
-import { languageCookie } from "@/lib/locale";
-import { isLocale, languages, type Locale } from "@/lib/translations";
+"use client";
 
-async function chooseLanguage(formData: FormData) {
-  "use server";
-  const choice = formData.get("language");
-  if (!isLocale(choice)) return;
-  (await cookies()).set(languageCookie, choice, {
-    path: "/", sameSite: "lax", httpOnly: true, maxAge: 365 * 24 * 60 * 60,
-  });
+import Link from "next/link";
+import { languageCookie, localizedPath, type LocalizedRoute } from "@/lib/routes";
+import { languages, type Locale } from "@/lib/translations";
+
+function rememberLanguage(locale: Locale) {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${languageCookie}=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
 }
 
-export function LanguageSwitcher({ locale, label }: { locale: Locale; label: string }) {
+export function LanguageSwitcher({ route, label }: { route: LocalizedRoute; label: string }) {
   return (
-    <form action={chooseLanguage} className="language-switcher" aria-label={label}>
-      {Object.entries(languages).map(([code, name]) => (
-        <button key={code} name="language" value={code} lang={code} aria-label={name}
-          title={name} aria-pressed={locale === code}>
-          {code.toUpperCase()}
-        </button>
+    <nav className="language-switcher" aria-label={label}>
+      {(Object.keys(languages) as Locale[]).map(locale => (
+        <Link
+          key={locale}
+          href={localizedPath(locale, route.page)}
+          lang={locale}
+          hrefLang={locale}
+          aria-label={languages[locale]}
+          aria-current={route.locale === locale ? "page" : undefined}
+          title={languages[locale]}
+          scroll={false}
+          onNavigate={() => rememberLanguage(locale)}
+        >
+          {locale.toUpperCase()}
+        </Link>
       ))}
-    </form>
+    </nav>
   );
 }

@@ -37,6 +37,14 @@ const featuredRepos: FeaturedRepository[] = [
     de: "Ein neuer Webauftritt für den Banditos Barber Shop in Vrchlabí mit großen Fotos, umgesetzt mit Next.js, TypeScript und GSAP.",
     stargazers_count: 0,
   },
+  {
+    name: "franz-ferdinand-fanzine",
+    html_url: `${githubProfile}/franz-ferdinand-fanzine`,
+    description: "A neo-brutalist Franz Ferdinand fanzine built with Next.js and GSAP.",
+    cs: "Neobrutalistický fanzin o kapele Franz Ferdinand vytvořený pomocí Next.js a GSAP.",
+    de: "Ein neobrutalistisches Fanzine über die Band Franz Ferdinand, umgesetzt mit Next.js und GSAP.",
+    stargazers_count: 0,
+  },
 ];
 
 export async function getRepositories(locale: Locale) {
@@ -46,7 +54,7 @@ export async function getRepositories(locale: Locale) {
     return featured ? { ...repo, description: featured[locale] } : repo;
   }
 
-  const query = new URLSearchParams({ type: "owner", sort: "pushed", direction: "desc", per_page: "3" });
+  const query = new URLSearchParams({ type: "owner", sort: "pushed", direction: "desc", per_page: "4" });
   const headers = new Headers({ Accept: "application/vnd.github+json" });
   const token = process.env.GITHUB_TOKEN?.trim();
   if (token) headers.set("Authorization", `Bearer ${token}`);

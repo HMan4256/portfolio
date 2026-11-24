@@ -6,7 +6,12 @@ import gsap from "gsap";
 import { PixelIcon } from "./pixel-icon";
 import { Sprite } from "./sprite";
 
-export function PetCat({ className, priority, label }: { label: string; className: string; priority?: boolean }) {
+export function PetCat({ className, priority, label, alt }: {
+  label: string;
+  className: string;
+  priority?: boolean;
+  alt?: string;
+}) {
   const button = useRef<HTMLButtonElement>(null);
   const reaction = useRef<gsap.core.Timeline | null>(null);
   const { contextSafe } = useGSAP({ scope: button });
@@ -35,9 +40,9 @@ export function PetCat({ className, priority, label }: { label: string; classNam
   });
 
   return (
-    <button type="button" ref={button} className={`pet-cat ${className}`}
+    <button type="button" ref={button} className={`pet-cat ${className}`} data-sound-click="pet"
       aria-label={label} title={label} onClick={pet}>
-      <span className="cat-body"><Sprite name="cat" priority={priority} /></span>
+      <span className="cat-body"><Sprite name="cat" alt={alt} priority={priority} /></span>
       <span className="pet-hearts" aria-hidden="true">
         {[0, 1, 2].map(i => <PixelIcon key={i} name="heart" className="pet-heart" />)}
       </span>

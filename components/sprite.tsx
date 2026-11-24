@@ -10,21 +10,23 @@ const sprites = {
 
 type SpriteProps = {
   name: keyof typeof sprites;
+  alt?: string;
   className?: string;
   priority?: boolean;
 };
 
-export function Sprite({ name, className, priority }: SpriteProps) {
+export function Sprite({ name, alt = "", className, priority }: SpriteProps) {
   const [width, height] = sprites[name];
 
   return (
     <Image
       src={`/pixel/${name}.png`}
-      alt=""
+      alt={alt}
       width={width}
       height={height}
       className={className}
       loading={priority ? "eager" : undefined}
+      fetchPriority={priority ? "high" : undefined}
       draggable={false}
       unoptimized
     />
