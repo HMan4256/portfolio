@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { languages, type Locale } from "./translations";
 import { localizedPath, type PagePath } from "./routes";
 
-export const siteUrl = new URL(process.env.SITE_URL?.trim() || "https://fancyweb.top");
+export const siteUrl = new URL(process.env.SITE_URL?.trim() || "https://www.fancyweb.top");
 export const siteName = "HMan";
 export const locales = Object.keys(languages) as Locale[];
 

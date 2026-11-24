@@ -33,7 +33,7 @@ To use any of these optional settings, copy `.env.example` to `.env.local`.
 | --- | --- |
 | `CONTACT_EMAIL` | Adds a public email link to the contact screen. |
 | `GITHUB_TOKEN` | Authenticates the server’s GitHub requests for a higher API rate limit. |
-| `SITE_URL` | Overrides the canonical public origin for metadata and the sitemap. Defaults to `https://fancyweb.top`. |
+| `SITE_URL` | Overrides the canonical public origin for metadata and the sitemap. Defaults to `https://www.fancyweb.top`. |
 | `GOOGLE_SITE_VERIFICATION` | Adds the HTML verification token from Google Search Console. |
 
 ## English · Čeština · Deutsch
